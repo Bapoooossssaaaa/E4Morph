@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epsilon-4 Command Terminal</title>
+    <style>
+        /* --- THEME CONFIGURATION --- */
+        :root {
+            --bg-url: url('https://github.com/Bapoooossssaaaa/scpstuff/blob/main/Screenshot%202025-07-23%20063406.png?raw=true');
+            /* Semi-transparent Glass (65% opacity) */
+            --glass-bg: rgba(15, 25, 35, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-color: #e0e6ed;
+            --accent-blue: #5c9eff;
+            --accent-hover: #82baff;
+            --input-bg: rgba(0, 0, 0, 0.5);
+            --font-main: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            --font-tech: "Courier New", Courier, monospace;
+        }
+
+        /* --- GLOBAL STYLES --- */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-main);
+            color: var(--text-color);
+            background-image: var(--bg-url);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: #1a202c;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+        }
+
+        /* --- MAIN CONTAINER --- */
+        .terminal-window {
+            width: 90%;
+            max-width: 800px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 2rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- HEADER --- */
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-blue);
+            text-shadow: 0 0 10px rgba(92, 158, 255, 0.5);
+        }
+
+        p.subtitle {
+            margin: 0.5rem 0 0;
+            font-size: 0.9rem;
+            color: #b0c4de;
+        }
+
+        /* --- FORM GRID --- */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 600px) {
+            .controls-grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #dbeafe;
+            text-transform: uppercase;
+            text-shadow: 0 0 2px rgba(0,0,0,0.8);
+        }
+
+        input, select {
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--glass-border);
+            background: var(--input-bg);
+            color: #fff;
+            font-family: var(--font-tech);
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 8px rgba(92, 158, 255, 0.3);
+        }
+
+        /* --- BUTTONS --- */
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(29, 78, 216, 0.9) 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: transform 0.1s, box-shadow 0.2s;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-copy {
+            background: rgba(39, 47, 61, 0.8);
+            border: 1px solid var(--glass-border);
+            color: #a0aec0;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: rgba(45, 55, 72, 0.9);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        /* --- OUTPUT AREA --- */
+        .output-section {
+            margin-top: 2rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 250px;
+            background: transparent;
+            border: none;
+            color: var(--accent-blue);
+            font-family: var(--font-tech);
+            font-size: 0.85rem;
+            resize: vertical;
+            line-height: 1.5;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        textarea:focus {
+            outline: none;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="terminal-window">
+        <header>
+            <h1>Epsilon-4 Logistics</h1>
+            <p class="subtitle">Morph & Loadout Command Generator</p>
+        </header>
+
+        <div class="controls-grid">
+            <!-- Username -->
+            <div class="input-group">
+                <label for="username">Target User</label>
+                <input type="text" id="username" placeholder="RobloxUsername">
+            </div>
+
+            <!-- Codename -->
+            <div class="input-group">
+                <label for="codename">Codename</label>
+                <input type="text" id="codename" placeholder="e.g. Viper">
+            </div>
+
+            <!-- Rank Selection -->
+            <div class="input-group full-width">
+                <label for="rank">Rank</label>
+                <select id="rank" onchange="updateMorphOptions()">
+                    <optgroup label="Low Ranks (LR)">
+                        <option value="JO">Junior Operative (E4-JO)</option>
+                        <option value="O">Operative (E4-O)</option>
+                        <option value="SO">Senior Operative (E4-SO)</option>
+                        <option value="LO">Lead Operative (E4-LO)</option>
+                    </optgroup>
+                    <optgroup label="Middle Ranks (MR)">
+                        <option value="CPL">Corporal (E4-CPL)</option>
+                        <option value="SGT">Sergeant (E4-SGT)</option>
+                        <option value="MSGT">Master Sergeant (E4-MSGT)</option>
+                        <option value="SPC">Specialist (E4-SPC)</option>
+                    </optgroup>
+                    <optgroup label="High Ranks (HR)">
+                        <option value="WO">Warrant Officer</option>
+                        <option value="LT">Lieutenant</option>
+                        <option value="CPT">Captain</option>
+                        <option value="MAJ">Major</option>
+                        <option value="COL">Colonel</option>
+                        <option value="HR_ARM">HR Armband (Generic)</option>
+                    </optgroup>
+                    <optgroup label="High Command (HC)">
+                        <option value="HC_ARM">HC Armband</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- Morph Selection -->
+            <div class="input-group full-width">
+                <label for="morph">Loadout</label>
+                <select id="morph">
+                    <option value="LR_STD">LR Standard (Hats + Stats)</option>
+                    <option value="MR_STD">MR Standard (Hats + NVG + Stats)</option>
+                    <option value="HR_STD">HR Standard (Hats + NVG + Stats)</option>
+                    <option value="HR_CMD">HR/HC Command Focused</option>
+                    <option value="GAS">Gasmask Version (HC Only)</option>
+                    <option value="INSTR_GEAR">Instructor Gear (MR+)</option>
+                    <option value="CUSTOM">Custom (No Hats - MR+)</option>
+                </select>
+            </div>
+            
+            <button class="btn-primary full-width" onclick="generateCommand()">Generate Command</button>
+        </div>
+
+        <div class="output-section">
+            <div class="output-header">
+                <label>Command Output</label>
+                <button class="btn-copy" onclick="copyToClipboard()">Copy to Clipboard</button>
+            </div>
+            <textarea id="output" readonly>Waiting for input...</textarea>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA CONFIGURATION ---
+        
+        // 1. Uniforms & Rank Types & Abbreviations
+        // Added 'abbr' field for ntag with "TF" prefix for LR/MR
+        const ranks = {
+            // LR (TF Prefix)
+            "JO":       { shirt: "104705880084468", pants: "11396300033", title: "Junior Operative", abbr: "TFJO", type: "LR" },
+            "O":        { shirt: "92840459882561",  pants: "11396300033", title: "Operative", abbr: "TFO", type: "LR" },
+            "SO":       { shirt: "108433158024625", pants: "11396300033", title: "Senior Operative", abbr: "TFSO", type: "LR" },
+            "LO":       { shirt: "81993824138263",  pants: "11396300033", title: "Lead Operative", abbr: "TFLO", type: "LR" },
+            
+            // MR (TF Prefix)
+            "CPL":      { shirt: "97706194316330",  pants: "11396300033", title: "Corporal", abbr: "TFCPL", type: "MR" },
+            "SGT":      { shirt: "75336808265246",  pants: "11396300033", title: "Sergeant", abbr: "TFSGT", type: "MR" },
+            "MSGT":     { shirt: "82949421071097",  pants: "11396300033", title: "Master Sergeant", abbr: "TFMSGT", type: "MR" },
+            "SPC":      { shirt: "101027756318824", pants: "11396300033", title: "Specialist", abbr: "TFSPC", type: "MR" },
+            
+            // HR (Standard Abbreviations, using HR_ARM uniform as base)
+            "WO":       { shirt: "75195745762310",  pants: "11396300033", title: "Warrant Officer", abbr: "WO", type: "HR" },
+            "LT":       { shirt: "75195745762310",  pants: "11396300033", title: "Lieutenant", abbr: "LT", type: "HR" },
+            "CPT":      { shirt: "75195745762310",  pants: "11396300033", title: "Captain", abbr: "CPT", type: "HR" },
+            "MAJ":      { shirt: "75195745762310",  pants: "11396300033", title: "Major", abbr: "MAJ", type: "HR" },
+            "COL":      { shirt: "75195745762310",  pants: "11396300033", title: "Colonel", abbr: "COL", type: "HR" },
+            "HR_ARM":   { shirt: "75195745762310",  pants: "11396300033", title: "High Rank", abbr: "HR", type: "HR" },
+            
+            // HC
+            "HC_ARM":   { shirt: "96024883099372",  pants: "11396300033", title: "High Command", abbr: "HC", type: "HC" }
+        };
+
+        // 2. Loadout Definitions
+        const loadouts = {
+            "LR_STD": {
+                hats: "117694264830848 87997515473963 138865739156425 118419000573594 15502514305 129351084728323 18803205025 17266468821 13770147630 137724639107553",
+                health: 120,
+                tagType: "LR",
+                nvg: "jnvg"
+            },
+            "MR_STD": {
+                hats: "76366177662456 87997515473963 138865739156425 118419000573594 15502514305 129351084728323 18803205025 13834560407 17266468821 13770147630 137724639107553",
+                health: 135,
+                tagType: "MR",
+                nvg: "jnvg"
+            },
+            "HR_STD": {
+                hats: "87997515473963 138865739156425 118419000573594 15502514305 85455607289541 129351084728323 18803205025 13834560407 17266468821 13770147630 137724639107553",
+                health: 150,
+                tagType: "HR",
+                nvg: "jqnvg"
+            },
+            "HR_CMD": {
+                hats: "13894334548 10788217931 87997515473963 139486942466667 138865739156425 85455607289541 18803205025 13770147630",
+                health: 150,
+                tagType: "HR",
+                nvg: null
+            },
+            "GAS": {
+                hats: "Gasmask2 13770147630 18803205025 14807864072 87997515473963 10788217931 138865739156425 85455607289541",
+                health: 150, // HC usually high health
+                tagType: "HR", // Using HR tags for HC
+                nvg: null
+            },
+            "INSTR_GEAR": {
+                hats: "15511696894 18803205025",
+                health: "SMART", // Will ask rank
+                tagType: "SMART", // Will ask rank
+                nvg: null
+            },
+            "CUSTOM": {
+                hats: "87997515473963 138865739156425 85455607289541 18803205025",
+                health: "SMART", // Custom usually follows rank stats
+                tagType: "SMART",
+                nvg: null
+            }
+        };
+
+        // 3. Allowed Morph Mapping (Strict Restrictions)
+        const allowedMorphs = {
+            "LR": ["LR_STD"], // Custom removed from LR
+            "MR": ["MR_STD", "CUSTOM", "INSTR_GEAR"], // Gas removed from MR, Custom & Instr added
+            "HR": ["HR_STD", "CUSTOM", "INSTR_GEAR"], // Gas removed from HR
+            "HC": ["HR_STD", "HR_CMD", "GAS", "CUSTOM", "INSTR_GEAR"] // HC gets everything + Gas
+        };
+
+        // 4. Stats & Tag Templates
+        // Instructor/Smart logic uses these to determine stats based on the selected Rank
+        const rankStats = {
+            "LR": { health: 120, tag: "LR" },
+            "MR": { health: 135, tag: "MR" },
+            "HR": { health: 150, tag: "HR" },
+            "HC": { health: 150, tag: "HR" } // HC uses HR tags/stats base
+        };
+
+        const tagTemplates = {
+            "LR": "﹝ Epsilon - 4 ﹞ <br/> 〔 MAINFORCE | LR | CL-II 〕",
+            "MR": "﹝ Epsilon - 4 ﹞ <br/> 〔 MAIN FORCE | MR | CL-II 〕",
+            "HR": "﹝ Epsilon - 4 ﹞ <br/> 〔 MAINFORCE | HR | CL-III 〕"
+        };
+
+        // --- FUNCTIONS ---
+
+        // A. Restriction Logic: Run on init and when rank changes
+        function updateMorphOptions() {
+            const rankSelect = document.getElementById('rank');
+            const morphSelect = document.getElementById('morph');
+            
+            // Get current Rank Type (e.g., "LR", "MR")
+            const rankKey = rankSelect.value;
+            const rankType = ranks[rankKey].type;
+            
+            // Get allowed morph keys for this rank type
+            const allowed = allowedMorphs[rankType];
+            
+            // Current morph selection (to try and preserve it if valid)
+            const currentMorph = morphSelect.value;
+
+            // Iterate through options and toggle visibility
+            let firstValid = null;
+            
+            for (let i = 0; i < morphSelect.options.length; i++) {
+                const opt = morphSelect.options[i];
+                if (allowed.includes(opt.value)) {
+                    // Show option
+                    opt.hidden = false;
+                    opt.disabled = false;
+                    if (!firstValid) firstValid = opt.value;
+                } else {
+                    // Hide option
+                    opt.hidden = true;
+                    opt.disabled = true;
+                }
+            }
+            
+            // If current selection is invalid for new rank, switch to first valid option
+            if (!allowed.includes(currentMorph)) {
+                morphSelect.value = firstValid;
+            }
+        }
+
+        // Run once on load to set initial state
+        window.onload = function() {
+            updateMorphOptions();
+        };
+
+        // B. Command Generation
+        function generateCommand() {
+            let user = document.getElementById('username').value.trim();
+            const codename = document.getElementById('codename').value.trim();
+            const rankKey = document.getElementById('rank').value;
+            const morphKey = document.getElementById('morph').value;
+
+            if (!user) user = "me";
+
+            const rData = ranks[rankKey];
+            const lData = loadouts[morphKey];
+
+            // Smart Stats Logic (Instructor & Custom now use this)
+            let finalHealth = lData.health;
+            let finalTagType = lData.tagType;
+
+            if (finalHealth === "SMART") {
+                const stats = rankStats[rData.type];
+                finalHealth = stats.health;
+                finalTagType = stats.tag;
+            }
+
+            // Updated to use rData.abbr (Abbreviations with TF prefix)
+            const nameTagHTML = `<font face="Michroma"> ${rData.abbr}⎰" ${codename} ” </font>`;
+            const roleTagHTML = `<font face="Michroma"> ${tagTemplates[finalTagType]} </font>`;
+            const blueRGB = "50 100 200";
+
+            let cmds = [];
+
+            // 1. Reset
+            cmds.push(`Permmorph ${user} remove`);
+
+            // 2. Uniform
+            cmds.push(`Permshirt ${user} ${rData.shirt}`);
+            cmds.push(`Permpants ${user} ${rData.pants}`);
+
+            // 3. Hats (Merge NVG if exists)
+            let combinedHats = lData.hats;
+            if (lData.nvg) {
+                // ADD NVG to same line as hats
+                combinedHats += " " + lData.nvg;
+            }
+            cmds.push(`Permhat ${user} ${combinedHats}`);
+
+            // 4. NVG Color (Keep separate)
+            if (lData.nvg) {
+                cmds.push(`Permcolornvg ${user} 255,255,255`);
+            }
+
+            // 5. Tags
+            cmds.push(`Permntag ${user} ${nameTagHTML}`);
+            cmds.push(`Permrtag ${user} ${roleTagHTML}`);
+            cmds.push(`Permcntag ${user} ${blueRGB}`);
+            cmds.push(`Permcrtag ${user} ${blueRGB}`);
+
+            // 6. Gear & Health
+            cmds.push(`Startergear ${user} Honey,sgm9,m9,l2`);
+            cmds.push(`Permmxhealth ${user} ${finalHealth}`);
+
+            // Final Output: Newlines for readability in box
+            const finalCommand = "Run " + cmds.join(" &\n");
+            document.getElementById('output').value = finalCommand;
+        }
+
+        function copyToClipboard() {
+            const outputEl = document.getElementById("output");
+            outputEl.select();
+            outputEl.setSelectionRange(0, 99999);
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(outputEl.value)
+                    .then(() => alert("Command copied!"))
+                    .catch(() => fallbackCopy());
+            } else {
+                fallbackCopy();
+            }
+        }
+
+        function fallbackCopy() {
+            try {
+                document.execCommand('copy');
+                alert("Command copied!");
+            } catch (err) {
+                alert("Failed to copy automatically.");
+            }
+        }
+    </script>
+</body>
+</html>

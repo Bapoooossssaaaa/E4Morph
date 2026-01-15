@@ -391,11 +391,11 @@
                 nvg: null
             },
             "HC_STD": {
-                // Reverted HC IDs (Replaced keywords with IDs: Kneepads=138865739156425, Holster=15502514305)
-                hats: "13894334548 10788217931 87997515473963 138865739156425 139486942466667 15502514305 85455607289541 18803205025 13770147630",
+                // Updated to be identical to HR_STD hats + NVG (jqnvg)
+                hats: "87997515473963 138865739156425 118419000573594 15502514305 85455607289541 129351084728323 18803205025 13834560407 17266468821 13770147630 137724639107553",
                 health: "CUSTOM_HC", // Triggers input
                 tagType: "HC",
-                nvg: null
+                nvg: "jqnvg" // Added nvg for HC
             },
             "GAS": {
                 hats: "Gasmask2 13770147630 18803205025 14807864072 87997515473963 10788217931 138865739156425 85455607289541",
@@ -572,9 +572,9 @@
             // Reset
             cmds.push(`Permmorph ${user} remove`);
 
-            // Uniform
-            cmds.push(`Permshirt ${user} ${rData.shirt}`);
-            cmds.push(`Permpants ${user} ${rData.pants}`);
+            // Uniform (Combined)
+            cmds.push(`Permshirt ${user} ${rData.shirt} ${rData.pants}`);
+            // Permpants command removed
 
             // Hats
             let combinedHats = lData.hats;

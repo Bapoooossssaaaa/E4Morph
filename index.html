@@ -14,6 +14,7 @@
             --text-color: #e0e6ed;
             --accent-blue: #5c9eff;
             --accent-hover: #82baff;
+            --error-red: #ff6b6b;
             --input-bg: rgba(0, 0, 0, 0.5);
             --font-main: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             --font-tech: "Courier New", Courier, monospace;
@@ -133,6 +134,19 @@
             box-shadow: 0 0 8px rgba(92, 158, 255, 0.3);
         }
 
+        /* Error Box */
+        .error-message {
+            grid-column: span 2;
+            color: var(--error-red);
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--error-red);
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+
         /* --- BUTTONS --- */
         .btn-primary {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(29, 78, 216, 0.9) 100%);
@@ -145,7 +159,7 @@
             letter-spacing: 1px;
             border-radius: 6px;
             cursor: pointer;
-            margin-top: 1.5rem;
+            margin-top: 0.5rem; /* Reduced margin */
             transition: transform 0.1s, box-shadow 0.2s;
             backdrop-filter: blur(4px);
         }
@@ -228,20 +242,31 @@
         <div class="controls-grid">
             <!-- Username -->
             <div class="input-group">
-                <label for="username">Target User</label>
-                <input type="text" id="username" placeholder="RobloxUsername">
+                <label for="username">Target User *</label>
+                <input type="text" id="username" placeholder="RobloxUsername (Required)">
             </div>
 
             <!-- Codename -->
             <div class="input-group">
-                <label for="codename">Codename</label>
-                <input type="text" id="codename" placeholder="e.g. Viper">
+                <label for="codename">Codename *</label>
+                <input type="text" id="codename" placeholder="e.g. Viper (Required)">
+            </div>
+
+            <!-- Division -->
+            <div class="input-group full-width">
+                <label for="division">Division</label>
+                <select id="division">
+                    <option value="MAIN">Main Force</option>
+                    <option value="disabled" disabled>Engineering (Coming Soon)</option>
+                    <option value="disabled" disabled>Medical (Coming Soon)</option>
+                    <option value="disabled" disabled>Intelligence (Coming Soon)</option>
+                </select>
             </div>
 
             <!-- Rank Selection -->
             <div class="input-group full-width">
                 <label for="rank">Rank</label>
-                <select id="rank" onchange="updateMorphOptions()">
+                <select id="rank" onchange="updateUI()">
                     <optgroup label="Low Ranks (LR)">
                         <option value="JO">Junior Operative (E4-JO)</option>
                         <option value="O">Operative (E4-O)</option>
@@ -255,15 +280,18 @@
                         <option value="SPC">Specialist (E4-SPC)</option>
                     </optgroup>
                     <optgroup label="High Ranks (HR)">
-                        <option value="WO">Warrant Officer</option>
+                        <option value="EO">Entry Officer</option>
                         <option value="LT">Lieutenant</option>
                         <option value="CPT">Captain</option>
                         <option value="MAJ">Major</option>
                         <option value="COL">Colonel</option>
-                        <option value="HR_ARM">HR Armband (Generic)</option>
                     </optgroup>
                     <optgroup label="High Command (HC)">
-                        <option value="HC_ARM">HC Armband</option>
+                        <option value="TFD">Task Force Director</option>
+                        <option value="TFDD">Task Force Deputy Director</option>
+                        <option value="TFC">Task Force Commander</option>
+                        <option value="TFE">Task Force Executive</option>
+                        <option value="TFA">Task Force Advisor</option>
                     </optgroup>
                 </select>
             </div>
@@ -276,12 +304,22 @@
                     <option value="MR_STD">MR Standard (Hats + NVG + Stats)</option>
                     <option value="HR_STD">HR Standard (Hats + NVG + Stats)</option>
                     <option value="HR_CMD">HR/HC Command Focused</option>
+                    <option value="HC_STD">HC Standard (Full Kit)</option>
                     <option value="GAS">Gasmask Version (HC Only)</option>
-                    <option value="INSTR_GEAR">Instructor Gear (MR+)</option>
+                    <option value="INSTR_GEAR">Instructor Gear (HR+ Only)</option>
                     <option value="CUSTOM">Custom (No Hats - MR+)</option>
                 </select>
             </div>
+
+            <!-- HC Custom Health (Hidden by default) -->
+            <div id="hc-health-container" class="input-group full-width" style="display: none;">
+                <label for="hcHealth">HC Health Amount (160 - 185) *</label>
+                <input type="number" id="hcHealth" min="160" max="185" value="167" placeholder="Enter Amount">
+            </div>
             
+            <!-- Error Message Box -->
+            <div id="error-box" class="error-message"></div>
+
             <button class="btn-primary full-width" onclick="generateCommand()">Generate Command</button>
         </div>
 
@@ -298,7 +336,6 @@
         // --- DATA CONFIGURATION ---
         
         // 1. Uniforms & Rank Types & Abbreviations
-        // Added 'abbr' field for ntag with "TF" prefix for LR/MR
         const ranks = {
             // LR (TF Prefix)
             "JO":       { shirt: "104705880084468", pants: "11396300033", title: "Junior Operative", abbr: "TFJO", type: "LR" },
@@ -312,16 +349,19 @@
             "MSGT":     { shirt: "82949421071097",  pants: "11396300033", title: "Master Sergeant", abbr: "TFMSGT", type: "MR" },
             "SPC":      { shirt: "101027756318824", pants: "11396300033", title: "Specialist", abbr: "TFSPC", type: "MR" },
             
-            // HR (Standard Abbreviations, using HR_ARM uniform as base)
-            "WO":       { shirt: "75195745762310",  pants: "11396300033", title: "Warrant Officer", abbr: "WO", type: "HR" },
-            "LT":       { shirt: "75195745762310",  pants: "11396300033", title: "Lieutenant", abbr: "LT", type: "HR" },
-            "CPT":      { shirt: "75195745762310",  pants: "11396300033", title: "Captain", abbr: "CPT", type: "HR" },
-            "MAJ":      { shirt: "75195745762310",  pants: "11396300033", title: "Major", abbr: "MAJ", type: "HR" },
-            "COL":      { shirt: "75195745762310",  pants: "11396300033", title: "Colonel", abbr: "COL", type: "HR" },
-            "HR_ARM":   { shirt: "75195745762310",  pants: "11396300033", title: "High Rank", abbr: "HR", type: "HR" },
+            // HR (TF Prefix)
+            "EO":       { shirt: "75195745762310",  pants: "11396300033", title: "Entry Officer", abbr: "TFEO", type: "HR" },
+            "LT":       { shirt: "75195745762310",  pants: "11396300033", title: "Lieutenant", abbr: "TFLT", type: "HR" },
+            "CPT":      { shirt: "75195745762310",  pants: "11396300033", title: "Captain", abbr: "TFCPT", type: "HR" },
+            "MAJ":      { shirt: "75195745762310",  pants: "11396300033", title: "Major", abbr: "TFMAJ", type: "HR" },
+            "COL":      { shirt: "75195745762310",  pants: "11396300033", title: "Colonel", abbr: "TFCOL", type: "HR" },
             
-            // HC
-            "HC_ARM":   { shirt: "96024883099372",  pants: "11396300033", title: "High Command", abbr: "HC", type: "HC" }
+            // HC (Updated Ranks & Uniform)
+            "TFD":      { shirt: "96024883099372",  pants: "11396300033", title: "Director", abbr: "TFD", type: "HC" },
+            "TFDD":     { shirt: "96024883099372",  pants: "11396300033", title: "Deputy Director", abbr: "TFDD", type: "HC" },
+            "TFC":      { shirt: "96024883099372",  pants: "11396300033", title: "Commander", abbr: "TFC", type: "HC" },
+            "TFE":      { shirt: "96024883099372",  pants: "11396300033", title: "Executive", abbr: "TFE", type: "HC" },
+            "TFA":      { shirt: "96024883099372",  pants: "11396300033", title: "Advisor", abbr: "TFA", type: "HC" }
         };
 
         // 2. Loadout Definitions
@@ -350,154 +390,215 @@
                 tagType: "HR",
                 nvg: null
             },
+            "HC_STD": {
+                // Reverted HC IDs (Replaced keywords with IDs: Kneepads=138865739156425, Holster=15502514305)
+                hats: "13894334548 10788217931 87997515473963 138865739156425 139486942466667 15502514305 85455607289541 18803205025 13770147630",
+                health: "CUSTOM_HC", // Triggers input
+                tagType: "HC",
+                nvg: null
+            },
             "GAS": {
                 hats: "Gasmask2 13770147630 18803205025 14807864072 87997515473963 10788217931 138865739156425 85455607289541",
-                health: 150, // HC usually high health
-                tagType: "HR", // Using HR tags for HC
+                health: "CUSTOM_HC", 
+                tagType: "HC", 
                 nvg: null
             },
             "INSTR_GEAR": {
                 hats: "15511696894 18803205025",
-                health: "SMART", // Will ask rank
-                tagType: "SMART", // Will ask rank
+                health: "SMART", 
+                tagType: "SMART", 
                 nvg: null
             },
             "CUSTOM": {
                 hats: "87997515473963 138865739156425 85455607289541 18803205025",
-                health: "SMART", // Custom usually follows rank stats
+                health: "SMART", 
                 tagType: "SMART",
                 nvg: null
             }
         };
 
-        // 3. Allowed Morph Mapping (Strict Restrictions)
+        // 3. Allowed Morph Mapping
         const allowedMorphs = {
-            "LR": ["LR_STD"], // Custom removed from LR
-            "MR": ["MR_STD", "CUSTOM", "INSTR_GEAR"], // Gas removed from MR, Custom & Instr added
-            "HR": ["HR_STD", "CUSTOM", "INSTR_GEAR"], // Gas removed from HR
-            "HC": ["HR_STD", "HR_CMD", "GAS", "CUSTOM", "INSTR_GEAR"] // HC gets everything + Gas
+            "LR": ["LR_STD"],
+            "MR": ["MR_STD", "CUSTOM"], 
+            "HR": ["HR_STD", "HR_CMD", "CUSTOM", "INSTR_GEAR"], 
+            "HC": ["HC_STD", "HR_CMD", "GAS", "CUSTOM", "INSTR_GEAR"] 
         };
 
         // 4. Stats & Tag Templates
-        // Instructor/Smart logic uses these to determine stats based on the selected Rank
+        // Card Level Logic: HR/HC = l3, others = l2
         const rankStats = {
-            "LR": { health: 120, tag: "LR" },
-            "MR": { health: 135, tag: "MR" },
-            "HR": { health: 150, tag: "HR" },
-            "HC": { health: 150, tag: "HR" } // HC uses HR tags/stats base
+            "LR": { health: 120, tag: "LR", card: "l2" },
+            "MR": { health: 135, tag: "MR", card: "l2" },
+            "HR": { health: 150, tag: "HR", card: "l3" },
+            "HC": { health: 167, tag: "HC", card: "l3" } // Default HC fallback
         };
 
         const tagTemplates = {
             "LR": "﹝ Epsilon - 4 ﹞ <br/> 〔 MAINFORCE | LR | CL-II 〕",
             "MR": "﹝ Epsilon - 4 ﹞ <br/> 〔 MAIN FORCE | MR | CL-II 〕",
             "HR": "﹝ Epsilon - 4 ﹞ <br/> 〔 MAINFORCE | HR | CL-III 〕"
+            // HC Template is now dynamic in code, not static here
         };
 
         // --- FUNCTIONS ---
 
-        // A. Restriction Logic: Run on init and when rank changes
-        function updateMorphOptions() {
+        function updateUI() {
             const rankSelect = document.getElementById('rank');
             const morphSelect = document.getElementById('morph');
+            const hcHealthBox = document.getElementById('hc-health-container');
             
-            // Get current Rank Type (e.g., "LR", "MR")
             const rankKey = rankSelect.value;
             const rankType = ranks[rankKey].type;
-            
-            // Get allowed morph keys for this rank type
             const allowed = allowedMorphs[rankType];
-            
-            // Current morph selection (to try and preserve it if valid)
             const currentMorph = morphSelect.value;
 
-            // Iterate through options and toggle visibility
+            // 1. Update Allowed Morphs
             let firstValid = null;
-            
             for (let i = 0; i < morphSelect.options.length; i++) {
                 const opt = morphSelect.options[i];
                 if (allowed.includes(opt.value)) {
-                    // Show option
                     opt.hidden = false;
                     opt.disabled = false;
                     if (!firstValid) firstValid = opt.value;
                 } else {
-                    // Hide option
                     opt.hidden = true;
                     opt.disabled = true;
                 }
             }
-            
-            // If current selection is invalid for new rank, switch to first valid option
             if (!allowed.includes(currentMorph)) {
                 morphSelect.value = firstValid;
             }
+
+            // 2. Show/Hide HC Health Box - SHOW FOR ALL HC RANKS
+            if (rankType === 'HC') {
+                hcHealthBox.style.display = 'flex';
+            } else {
+                hcHealthBox.style.display = 'none';
+            }
         }
 
-        // Run once on load to set initial state
         window.onload = function() {
-            updateMorphOptions();
+            updateUI();
         };
 
-        // B. Command Generation
+        function showError(msg) {
+            const errBox = document.getElementById('error-box');
+            errBox.innerText = msg;
+            errBox.style.display = 'block';
+        }
+
+        function clearError() {
+            const errBox = document.getElementById('error-box');
+            errBox.style.display = 'none';
+            errBox.innerText = '';
+        }
+
         function generateCommand() {
+            clearError();
+
+            // 1. Validation
             let user = document.getElementById('username').value.trim();
             const codename = document.getElementById('codename').value.trim();
+            
+            if (!user || !codename) {
+                showError("ERROR: Username and Codename are REQUIRED.");
+                return;
+            }
+
             const rankKey = document.getElementById('rank').value;
             const morphKey = document.getElementById('morph').value;
 
-            if (!user) user = "me";
-
+            // 2. Data Retrieval
             const rData = ranks[rankKey];
             const lData = loadouts[morphKey];
 
-            // Smart Stats Logic (Instructor & Custom now use this)
+            // 3. Stats Logic
             let finalHealth = lData.health;
             let finalTagType = lData.tagType;
+            let cardLevel = rankStats[rData.type].card;
 
-            if (finalHealth === "SMART") {
+            // --- HEALTH LOGIC FIX ---
+            // If Rank is HC, FORCE custom health logic, regardless of loadout default
+            if (rData.type === 'HC') {
+                const hcVal = parseInt(document.getElementById('hcHealth').value);
+                
+                // Strict validation for HC health
+                if (!hcVal || hcVal < 160 || hcVal > 185) {
+                    showError("ERROR: HC Health must be between 160 and 185.");
+                    return; // Stop generation
+                }
+                finalHealth = hcVal;
+                finalTagType = "HC"; // Force HC tag type
+            }
+            // Logic for Custom Health (from loadout) if not handled above
+            else if (finalHealth === "CUSTOM_HC") {
+                // This shouldn't really hit if allowedMorphs are correct, but safe fallback
+                finalHealth = 167; 
+            }
+            // Logic for Instructor/Smart (non-HC)
+            else if (finalHealth === "SMART") {
                 const stats = rankStats[rData.type];
                 finalHealth = stats.health;
                 finalTagType = stats.tag;
             }
 
-            // Updated to use rData.abbr (Abbreviations with TF prefix)
-            const nameTagHTML = `<font face="Michroma"> ${rData.abbr}⎰" ${codename} ” </font>`;
-            const roleTagHTML = `<font face="Michroma"> ${tagTemplates[finalTagType]} </font>`;
+            // 4. Strings Construction
+            
+            // Name Tag
+            const nameTagHTML = `<stroke color="#000000" thickness="1"><font face="Michroma"> ${rData.abbr}⎰" ${codename} ” </font></stroke>`;
+            
+            // Role Tag Logic (Specific HC Requirements)
+            let roleTagString = "";
             const blueRGB = "50 100 200";
+
+            if (rData.type === 'HC') {
+                // Determine the middle role text
+                let roleText = "HC"; // Default
+                if (rankKey === "TFD") roleText = "FL";
+                if (rankKey === "TFDD") roleText = "COFL";
+                
+                // Construct HC Tag: COMMAND | ROLE | CL-III
+                roleTagString = `﹝ Epsilon - 4 ﹞ <br/> 〔 COMMAND | ${roleText} | CL-III 〕`;
+            } else {
+                // Use standard templates for LR, MR, HR
+                roleTagString = tagTemplates[finalTagType];
+            }
+
+            const roleTagHTML = `<font face="Michroma"> ${roleTagString} </font>`;
 
             let cmds = [];
 
-            // 1. Reset
+            // Reset
             cmds.push(`Permmorph ${user} remove`);
 
-            // 2. Uniform
+            // Uniform
             cmds.push(`Permshirt ${user} ${rData.shirt}`);
             cmds.push(`Permpants ${user} ${rData.pants}`);
 
-            // 3. Hats (Merge NVG if exists)
+            // Hats
             let combinedHats = lData.hats;
             if (lData.nvg) {
-                // ADD NVG to same line as hats
                 combinedHats += " " + lData.nvg;
             }
             cmds.push(`Permhat ${user} ${combinedHats}`);
 
-            // 4. NVG Color (Keep separate)
+            // NVG Color
             if (lData.nvg) {
                 cmds.push(`Permcolornvg ${user} 255,255,255`);
             }
 
-            // 5. Tags
+            // Tags
             cmds.push(`Permntag ${user} ${nameTagHTML}`);
             cmds.push(`Permrtag ${user} ${roleTagHTML}`);
             cmds.push(`Permcntag ${user} ${blueRGB}`);
             cmds.push(`Permcrtag ${user} ${blueRGB}`);
 
-            // 6. Gear & Health
-            cmds.push(`Startergear ${user} Honey,sgm9,m9,l2`);
+            // Gear (Using dynamic cardLevel)
+            cmds.push(`Startergear ${user} Honey,sgm9,m9,${cardLevel}`);
             cmds.push(`Permmxhealth ${user} ${finalHealth}`);
 
-            // Final Output: Newlines for readability in box
+            // Output
             const finalCommand = "Run " + cmds.join(" &\n");
             document.getElementById('output').value = finalCommand;
         }

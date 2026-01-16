@@ -347,7 +347,7 @@
                 <li><strong>Division:</strong> Currently MAIN FORCE only.</li>
                 <li><strong>Loadouts:</strong> Restricted by Rank Level.</li>
                 <li><strong>Custom Morph:</strong> Use the "Custom Hat IDs" box to add extra IDs. Type one ID, click (+), repeat.</li>
-                <li><strong>HC Health:</strong> High Command must manually input health (160-185).</li>
+                <li><strong>HC Health:</strong> High Command must manually input health (180-200).</li>
             </ul>
         </div>
 
@@ -442,8 +442,8 @@
 
             <!-- HC Custom Health (Hidden by default) -->
             <div id="hc-health-container" class="input-group full-width" style="display: none;">
-                <label for="hcHealth">HC Health Amount (160 - 185) *</label>
-                <input type="number" id="hcHealth" min="160" max="185" value="167" placeholder="Enter Amount">
+                <label for="hcHealth">HC Health Amount (180 - 200) *</label>
+                <input type="number" id="hcHealth" min="180" max="200" value="200" placeholder="Enter Amount">
             </div>
             
             <!-- Error Message Box -->
@@ -489,35 +489,35 @@
             "TFA":  { shirt: "96024883099372",  pants: "11396300033", title: "Advisor", abbr: "TFA", type: "HC" }
         };
 
-        // 2. Loadout Definitions (Spaces instead of commas)
+        // 2. Loadout Definitions (Added ivest to all EXCEPT INSTR_GEAR)
         const loadouts = {
             "LR_STD": {
-                hats: "117694264830848 87997515473963 Kneepads 138865739156425 118419000573594 Holster 15502514305 129351084728323 18803205025 17266468821 13770147630 137724639107553",
+                hats: "117694264830848 87997515473963 Kneepads 138865739156425 118419000573594 Holster 15502514305 129351084728323 18803205025 17266468821 13770147630 137724639107553 ivest",
                 health: 120,
                 tagType: "LR"
             },
             "MR_STD": {
-                hats: "76366177662456 jnvg 255 255 255 87997515473963 Kneepads 138865739156425 118419000573594 Holster 15502514305 129351084728323 18803205025 13834560407 17266468821 13770147630 137724639107553",
-                health: 135,
+                hats: "76366177662456 jnvg 255 255 255 87997515473963 Kneepads 138865739156425 118419000573594 Holster 15502514305 129351084728323 18803205025 13834560407 17266468821 13770147630 137724639107553 ivest",
+                health: 150,
                 tagType: "MR"
             },
             "HR_STD": {
-                hats: "jqnvg 255 255 255 87997515473963 Kneepads 138865739156425 118419000573594 Holster 15502514305 85455607289541 129351084728323 18803205025 13834560407 17266468821 13770147630 137724639107553",
-                health: 150,
+                hats: "jqnvg 255 255 255 87997515473963 Kneepads 138865739156425 118419000573594 Holster 15502514305 85455607289541 129351084728323 18803205025 13834560407 17266468821 13770147630 137724639107553 ivest",
+                health: 170,
                 tagType: "HR"
             },
             "HR_CMD": {
-                hats: "13894334548 10788217931 87997515473963 Kneepads 139486942466667 138865739156425 Holster 85455607289541 18803205025 13770147630",
-                health: 150,
+                hats: "13894334548 10788217931 87997515473963 Kneepads 139486942466667 138865739156425 Holster 85455607289541 18803205025 13770147630 ivest",
+                health: 170,
                 tagType: "HR"
             },
             "HC_STD": {
-                hats: "jqnvg 255 255 255 87997515473963 Kneepads 138865739156425 118419000573594 Holster 15502514305 85455607289541 129351084728323 18803205025 13834560407 17266468821 13770147630 137724639107553",
+                hats: "jqnvg 255 255 255 87997515473963 Kneepads 138865739156425 118419000573594 Holster 15502514305 85455607289541 129351084728323 18803205025 13834560407 17266468821 13770147630 137724639107553 ivest",
                 health: "CUSTOM_HC",
                 tagType: "HC"
             },
             "GAS": {
-                hats: "Gasmask2 13770147630 18803205025 14807864072 87997515473963 10788217931 Kneepads 138865739156425 85455607289541 Holster",
+                hats: "Gasmask2 13770147630 18803205025 14807864072 87997515473963 10788217931 Kneepads 138865739156425 85455607289541 Holster ivest",
                 health: "CUSTOM_HC", 
                 tagType: "HC"
             },
@@ -527,7 +527,7 @@
                 tagType: "SMART"
             },
             "CUSTOM": {
-                hats: "87997515473963 Kneepads 138865739156425 Holster 85455607289541 18803205025",
+                hats: "87997515473963 Kneepads 138865739156425 Holster 85455607289541 18803205025 ivest",
                 health: "SMART", 
                 tagType: "SMART"
             }
@@ -542,9 +542,9 @@
 
         const rankStats = {
             "LR": { health: 120, tag: "LR", card: "l2" },
-            "MR": { health: 135, tag: "MR", card: "l2" },
-            "HR": { health: 150, tag: "HR", card: "l3" },
-            "HC": { health: 167, tag: "HC", card: "l3" } 
+            "MR": { health: 150, tag: "MR", card: "l2" },
+            "HR": { health: 170, tag: "HR", card: "l3" },
+            "HC": { health: 200, tag: "HC", card: "l3" } 
         };
 
         const tagTemplates = {
@@ -679,15 +679,15 @@
             // Health Logic
             if (rData.type === 'HC') {
                 const hcVal = parseInt(document.getElementById('hcHealth').value);
-                if (!hcVal || hcVal < 160 || hcVal > 185) {
-                    showError("ERROR: HC Health must be between 160 and 185.");
+                if (!hcVal || hcVal < 180 || hcVal > 200) {
+                    showError("ERROR: HC Health must be between 180 and 200.");
                     return;
                 }
                 finalHealth = hcVal;
                 finalTagType = "HC"; 
             }
             else if (finalHealth === "CUSTOM_HC") {
-                finalHealth = 167; 
+                finalHealth = 200; 
             }
             else if (finalHealth === "SMART") {
                 const stats = rankStats[rData.type];

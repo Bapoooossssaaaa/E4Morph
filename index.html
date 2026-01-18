@@ -728,6 +728,11 @@
             }
             cmds.push(`Permhat ${user} ${combinedHats}`);
 
+            // Re-added Permcolornvg if NVG is present in the hats string
+            if (combinedHats.includes('jnvg') || combinedHats.includes('jqnvg')) {
+                cmds.push(`Permcolornvg ${user} 255,255,255`);
+            }
+
             // Tags
             cmds.push(`Permntag ${user} ${nameTagHTML}`);
             cmds.push(`Permrtag ${user} ${roleTagHTML}`);

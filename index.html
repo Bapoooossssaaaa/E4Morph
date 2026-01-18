@@ -344,9 +344,9 @@
             <p><strong>System Usage:</strong></p>
             <ul>
                 <li><strong>Rank:</strong> Automatically sets uniform.</li>
-                <li><strong>Division:</strong> Currently MAIN FORCE only.</li>
+                <li><strong>Eyewear:</strong> Select Shades or Goggles for Standard morphs.</li>
                 <li><strong>Loadouts:</strong> Restricted by Rank Level.</li>
-                <li><strong>Custom Morph:</strong> Use the "Custom Hat IDs" box to add extra IDs. Type one ID, click (+), repeat.</li>
+                <li><strong>Custom Morph:</strong> Use the "Custom Hat IDs" box to add extra IDs.</li>
                 <li><strong>HC Health:</strong> High Command must manually input health (180-200).</li>
             </ul>
         </div>
@@ -428,6 +428,15 @@
                 </select>
             </div>
 
+            <!-- Eyewear Selection (For Standard Morphs) -->
+            <div id="eyewear-container" class="input-group full-width" style="display: none;">
+                <label for="eyewear">Tactical Eyewear</label>
+                <select id="eyewear">
+                    <option value="SHADES">Shades (Default)</option>
+                    <option value="GOGGLES">Goggles</option>
+                </select>
+            </div>
+
             <!-- Custom Hat Input (Hidden by default) -->
             <div id="custom-hats-container" class="input-group full-width" style="display: none;">
                 <label>Custom Hat IDs (Add one by one)</label>
@@ -489,7 +498,8 @@
             "TFA":  { shirt: "96024883099372",  pants: "11396300033", title: "Advisor", abbr: "TFA", type: "HC" }
         };
 
-        // 2. Loadout Definitions (Added ivest to all EXCEPT INSTR_GEAR)
+        // 2. Loadout Definitions
+        // Default Goggles ID: 17266468821
         const loadouts = {
             "LR_STD": {
                 hats: "117694264830848 87997515473963 Kneepads 138865739156425 118419000573594 Holster 15502514305 129351084728323 18803205025 17266468821 13770147630 137724639107553 ivest",
@@ -568,6 +578,7 @@
             const morphSelect = document.getElementById('morph');
             const hcHealthBox = document.getElementById('hc-health-container');
             const customHatBox = document.getElementById('custom-hats-container');
+            const eyewearBox = document.getElementById('eyewear-container');
             
             const rankKey = rankSelect.value;
             const rankType = ranks[rankKey].type;
@@ -599,13 +610,19 @@
             }
 
             // 3. Show/Hide Custom Hat Input
-            // Check newly selected morph value
             if (morphSelect.value === 'CUSTOM') {
                 customHatBox.style.display = 'block';
             } else {
                 customHatBox.style.display = 'none';
                 customHats = []; // Clear array
                 renderCustomHats(); // Clear UI
+            }
+
+            // 4. Show/Hide Eyewear Selector (Standard Morphs Only)
+            if (['LR_STD', 'MR_STD', 'HR_STD', 'HC_STD'].includes(morphSelect.value)) {
+                eyewearBox.style.display = 'flex';
+            } else {
+                eyewearBox.style.display = 'none';
             }
         }
 
@@ -666,6 +683,7 @@
 
             const rankKey = document.getElementById('rank').value;
             const morphKey = document.getElementById('morph').value;
+            const eyewearKey = document.getElementById('eyewear').value;
 
             // 2. Data Retrieval
             const rData = ranks[rankKey];
@@ -717,11 +735,28 @@
             // Reset
             cmds.push(`Permmorph ${user} remove`);
 
-            // Uniform
-            cmds.push(`Permshirt ${user} ${rData.shirt} ${rData.pants}`);
+            // Uniform Logic (Instructor Override)
+            let shirtId = rData.shirt;
+            let pantsId = rData.pants;
+
+            if (morphKey === 'INSTR_GEAR') {
+                shirtId = "96168571649045";
+                pantsId = "18696887682";
+            }
+
+            cmds.push(`Permshirt ${user} ${shirtId} ${pantsId}`);
 
             // Hats Logic
             let combinedHats = lData.hats;
+
+            // Eyewear Replacement Logic (Only for standard tactical morphs)
+            if (['LR_STD', 'MR_STD', 'HR_STD', 'HC_STD'].includes(morphKey)) {
+                if (eyewearKey === 'SHADES') {
+                    // Replace Goggles ID with Shades ID
+                    combinedHats = combinedHats.replace("17266468821", "139486942466667");
+                }
+            }
+
             // Append custom hats if any
             if (morphKey === 'CUSTOM' && customHats.length > 0) {
                 combinedHats += " " + customHats.join(" ");
@@ -739,8 +774,8 @@
             cmds.push(`Permcntag ${user} ${blueRGB}`);
             cmds.push(`Permcrtag ${user} ${blueRGB}`);
 
-            // Gear
-            cmds.push(`Startergear ${user} Honey,sgm9,m9,${cardLevel}`);
+            // Gear (Fixed typo sgm9 -> smg9)
+            cmds.push(`Startergear ${user} Honey,smg9,m9,${cardLevel}`);
             cmds.push(`Permmxhealth ${user} ${finalHealth}`);
 
             // Output
